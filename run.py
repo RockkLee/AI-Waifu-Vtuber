@@ -34,7 +34,7 @@ chat = ""
 chat_now = ""
 chat_prev = ""
 is_Speaking = False
-owner_name = "Ardha"
+owner_name = "Sam"
 blacklist = ["Nightbot", "streamelements"]
 
 # function to get the user's input audio
@@ -84,6 +84,7 @@ def transcribe_audio(file):
 
     result = owner_name + " said " + chat_now
     conversation.append({'role': 'user', 'content': result})
+    
     openai_answer()
 
 # function to get an answer from OpenAI
@@ -110,14 +111,17 @@ def openai_answer():
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=prompt,
-        max_tokens=128,
-        temperature=1,
+        max_tokens=4096,
+        temperature=2,
         top_p=0.9
     )
     message = response['choices'][0]['message']['content']
     conversation.append({'role': 'assistant', 'content': message})
 
+    start_time = time.time()
     translate_text(message)
+    print("---tramslate_text: %s seconds ---" % (time.time() - start_time))
+
 
 # function to capture livechat from youtube
 def yt_livechat(video_id):
@@ -180,43 +184,51 @@ def twitch_livechat():
             print("Error receiving chat: {0}".format(e))
 
 # translating is optional
-def translate_text(text):
+def translate_text(text, is_open: bool = False):
     global is_Speaking
     # subtitle will act as subtitle for the viewer
     # subtitle = translate_google(text, "ID")
 
     # tts will be the string to be converted to audio
-    detect = detect_google(text)
-    tts = translate_google(text, f"{detect}", "JA")
-    # tts = translate_deeplx(text, f"{detect}", "JA")
-    tts_en = translate_google(text, f"{detect}", "EN")
-    try:
-        # print("ID Answer: " + subtitle)
-        print("JP Answer: " + tts)
-        print("EN Answer: " + tts_en)
-    except Exception as e:
-        print("Error printing text: {0}".format(e))
-        return
+    if is_open:
+        detect = detect_google(text)
+        # tts = translate_google(text, f"{detect}", "JA")
+        # tts = translate_deeplx(text, f"{detect}", "JA")
+        tts_en = translate_google(text, f"{detect}", "EN")
+        try:
+            # print("ID Answer: " + subtitle)
+            # print("JP Answer: " + tts)
+            print("EN Answer: " + tts_en)
+        except Exception as e:
+            print("Error printing text: {0}".format(e))
+            return
+    else:
+         tts_en = text
+         print("Answer: " + tts_en)
 
     # Choose between the available TTS engines
     # Japanese TTS
     # voicevox_tts(tts)
 
     # Silero TTS, Silero TTS can generate English, Russian, French, Hindi, Spanish, German, etc. Uncomment the line below. Make sure the input is in that language
-    silero_tts(tts_en, "en", "v3_en", "en_21")
+    start_time = time.time()
+    silero_tts(tts_en, "en", "v3_en", "en_51")
+    print("---silero_tts: %s seconds ---" % (time.time() - start_time))
 
     # Generate Subtitle
     generate_subtitle(chat_now, text)
 
-    time.sleep(1)
+    # time.sleep(1)
 
     # is_Speaking is used to prevent the assistant speaking more than one audio at a time
+    start_time = time.time()
     is_Speaking = True
     winsound.PlaySound("test.wav", winsound.SND_FILENAME)
     is_Speaking = False
+    print("---PlaySound: %s seconds ---" % (time.time() - start_time))
 
     # Clear the text files after the assistant has finished speaking
-    time.sleep(1)
+    # time.sleep(1)
     with open ("output.txt", "w") as f:
         f.truncate(0)
     with open ("chat.txt", "w") as f:
