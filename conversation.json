@@ -2,7 +2,15 @@
     "history": [
         {
             "role": "user",
-            "content": "Sam said I finally optimized your respawn time, now you can speak much quicker."
+            "content": "Sam said Hey Siri."
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Sam! How can I assist you today?"
+        },
+        {
+            "role": "user",
+            "content": "Sam said you know currently I'm using a third-party TTS model I mean TTS service but I think that's too expensive I wonder is there any free charge solution"
         }
     ]
 }

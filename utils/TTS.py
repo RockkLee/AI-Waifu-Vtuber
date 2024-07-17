@@ -2,14 +2,20 @@ import os
 import torch
 import requests
 import urllib.parse
+import time
 from utils.katakana import *
+from utils.elevenlab import elevenlab_tts
+from playsound import playsound
+from utils.tts_type import TtsType
 
+
+# init
 num_threads = os.cpu_count()
 device = torch.device('cpu')
 torch.set_num_threads(num_threads)
 local_file = 'model.pt'
 print(f"Using {num_threads} threads for silero_tts")
-
+# load model.pt
 cache_model = None
 if os.path.isfile(local_file):
     print("Loading model.pt with cache...")
@@ -53,5 +59,24 @@ def voicevox_tts(tts):
     with open("test.wav", "wb") as outfile:
         outfile.write(request.content)
 
-if __name__ == "__main__":
-    silero_tts()
+
+def run_tts(type: TtsType, tts: str):
+    if TtsType.SILERO == type:
+        silero_tts(tts, "en", "v3_en", "en_50")
+    elif TtsType.ELEVENTLAB == type:
+        elevenlab_tts(tts)
+    elif TtsType.VOICEVOX == type:
+        pass
+
+
+def play_tts(type: TtsType):
+    if TtsType.SILERO == type:
+        start_time = time.time()
+        playsound('test.wav', block=True)
+        print("---PlaySound: %s seconds ---" % (time.time() - start_time))
+    elif TtsType.ELEVENTLAB == type:
+        start_time = time.time()
+        playsound('test.mp3', block=True)
+        print("---PlaySound: %s seconds ---" % (time.time() - start_time))
+    elif TtsType.VOICEVOX in type:
+        pass

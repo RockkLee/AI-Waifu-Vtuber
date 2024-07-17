@@ -1,5 +1,5 @@
 import openai
-import winsound
+from playsound import playsound
 import sys
 import pytchat
 import time
@@ -10,19 +10,20 @@ import wave
 import threading
 import json
 import socket
+import config
 from emoji import demojize
-from config import *
+from utils.TTS import run_tts, play_tts
 from utils.translate import *
-from utils.TTS import *
 from utils.subtitle import *
 from utils.promptMaker import *
 from utils.twitch_config import *
+
 
 # to help the CLI write unicode characters to the terminal
 sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
 
 # use your own API Key, you can get it from https://openai.com/. I place my API Key in a separate file called config.py
-openai.api_key = api_key
+openai.api_key = config.API_KEY
 
 conversation = []
 # Create a dictionary to hold the message data
@@ -34,8 +35,9 @@ chat = ""
 chat_now = ""
 chat_prev = ""
 is_Speaking = False
-owner_name = "Sam"
+owner_name = config.OWNER_NAME
 blacklist = ["Nightbot", "streamelements"]
+
 
 # function to get the user's input audio
 def record_audio():
@@ -67,6 +69,7 @@ def record_audio():
     wf.close()
     transcribe_audio("input.wav")
 
+
 # function to transcribe the user's audio
 def transcribe_audio(file):
     global chat_now
@@ -86,6 +89,7 @@ def transcribe_audio(file):
     conversation.append({'role': 'user', 'content': result})
     
     openai_answer()
+
 
 # function to get an answer from OpenAI
 def openai_answer():
@@ -148,6 +152,7 @@ def yt_livechat(video_id):
             except Exception as e:
                 print("Error receiving chat: {0}".format(e))
 
+
 def twitch_livechat():
     global chat
     sock = socket.socket()
@@ -183,6 +188,7 @@ def twitch_livechat():
         except Exception as e:
             print("Error receiving chat: {0}".format(e))
 
+
 # translating is optional
 def translate_text(text, is_open: bool = False):
     global is_Speaking
@@ -212,7 +218,9 @@ def translate_text(text, is_open: bool = False):
 
     # Silero TTS, Silero TTS can generate English, Russian, French, Hindi, Spanish, German, etc. Uncomment the line below. Make sure the input is in that language
     start_time = time.time()
-    silero_tts(tts_en, "en", "v3_en", "en_51")
+    # silero_tts(tts_en, "en", "v3_en", "en_51")
+    # elevenlab_tts(tts_en)
+    run_tts(config.TTS_TYPE, tts_en)
     print("---silero_tts: %s seconds ---" % (time.time() - start_time))
 
     # Generate Subtitle
@@ -223,7 +231,8 @@ def translate_text(text, is_open: bool = False):
     # is_Speaking is used to prevent the assistant speaking more than one audio at a time
     start_time = time.time()
     is_Speaking = True
-    winsound.PlaySound("test.wav", winsound.SND_FILENAME)
+    # playsound('test.mp3', block=True)
+    play_tts(config.TTS_TYPE)
     is_Speaking = False
     print("---PlaySound: %s seconds ---" % (time.time() - start_time))
 
@@ -233,6 +242,7 @@ def translate_text(text, is_open: bool = False):
         f.truncate(0)
     with open ("chat.txt", "w") as f:
         f.truncate(0)
+
 
 def preparation():
     global conversation, chat_now, chat, chat_prev
@@ -246,6 +256,7 @@ def preparation():
             chat_prev = chat_now
             openai_answer()
         time.sleep(1)
+
 
 if __name__ == "__main__":
     try:
@@ -275,4 +286,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         t.join()
         print("Stopped")
-
