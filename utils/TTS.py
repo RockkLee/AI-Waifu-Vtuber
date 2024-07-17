@@ -31,6 +31,8 @@ def silero_tts(tts, language, model, speaker):
                                     local_file)  
         print("Loading model.pt...")
         model = torch.package.PackageImporter(local_file).load_pickle("tts_models", "model")
+        global cache_model
+        cache_model = model
     else:
         model = cache_model    
     model.to(device)
