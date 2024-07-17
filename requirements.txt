@@ -6,6 +6,7 @@ mecab-python3
 openai
 pandas
 PyAudio
+playsound==1.2.2
 pytchat
 requests
 torch
